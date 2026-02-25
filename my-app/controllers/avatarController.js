@@ -3,7 +3,7 @@ const Avatar = require("../models/avatars");
 // =====================
 // Add new avatar
 // =====================
-async function avatarController(req, res) {
+async function uploadAvatar(req, res) {
   const { link } = req.body;
 
   // Validate input
@@ -47,6 +47,6 @@ async function getAllAvatars(req, res) {
 }
 
 module.exports = {
-  avatarController,
+  uploadAvatar,
   getAllAvatars,
 };

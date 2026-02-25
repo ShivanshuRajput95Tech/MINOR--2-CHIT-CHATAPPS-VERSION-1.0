@@ -1,9 +1,9 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "Chatappv1.0",
+  "description": "Chatapp v1.0",
   "keywords": [
-    "vronk'"
+    "vronk"
   ],
   "homepage": "https://github.com/ShivanshuRajput95Tech/MINOR--2-CHIT-CHATAPPS-VERSION-1.0#readme",
   "bugs": {
@@ -18,7 +18,9 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "test.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "node test.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -29,6 +31,7 @@
     "joi": "^18.0.2",
     "joi-password-complexity": "^5.2.0",
     "jsonwebtoken": "^9.0.3",
+    "mongodb": "^7.1.0",
     "mongoose": "^9.2.1",
     "nodemailer": "^8.0.1",
     "nodemon": "^3.1.14",

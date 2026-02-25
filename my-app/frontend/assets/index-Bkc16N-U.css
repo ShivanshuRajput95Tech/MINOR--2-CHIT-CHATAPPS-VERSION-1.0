@@ -1,0 +1,1 @@
+@import"https://fonts.googleapis.com/css2?family=Archivo:wght@100;200;300;400;500;600;700&display=swap";@tailwind base;@tailwind components;@tailwind utilities;body{@apply bg-gray-100 text-gray-900;}body{font-family:Archivo,sans-serif}.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}

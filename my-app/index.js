@@ -26,52 +26,34 @@ const allowedOrigins = [
   "https://swifty-chatty-appy.onrender.com"
 ];
 
-// CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
-    if (allowedOrigins.includes(origin) || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
+    if (allowedOrigins.includes(origin) || !origin) callback(null, true);
+    else callback(new Error("Not allowed by CORS"));
   },
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
-  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
 
-// API Routes
+// ROUTES
 app.use("/api/user", userRoute);
 app.use("/api/avatar", avatarRoute);
 
-// Server Port
+// SERVER
 const port = process.env.PORT || 8000;
-
-// Start server
 const server = app.listen(port, () =>
-  console.log(`Application running on port ${port}`)
+  console.log(`Server running on port ${port}`)
 );
 
-// Initialize WebSocket Server
+// WEBSOCKETS
 createWebSocketServer(server);
 
-// =====================================
-// SERVE FRONTEND (Vite / React Build)
-// =====================================
-app.use(
-  express.static(path.join(__dirname, "..", "frontend", "dist"))
-);
+// Serve frontend (Vite build)
+const distPath = path.join(__dirname, "..", "frontend", "dist");
+app.use(express.static(distPath));
 
-// Catch-all route for SPA
-app.get("/*", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "..", "frontend", "dist", "index.html"),
-    (err) => {
-      if (err) {
-        console.error("Error sending file:", err);
-      }
-    }
-  );
+// Express 5 compatible catch-all
+app.get(/(.*)/, (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });

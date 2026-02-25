@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/authContext";
+import "../styles/auth.css";
 
 const Login = () => {
   const [data, setData] = useState({
@@ -49,101 +50,68 @@ const Login = () => {
   };
 
   return (
-    <section className="bg-gray-900 min-h-screen flex items-center justify-center">
-      <div className="flex flex-col items-center justify-center px-4 py-8 mx-auto lg:py-0 w-full">
-        <div className="w-full rounded-lg shadow border md:mt-0 sm:max-w-md xl:p-0 bg-gray-800 border-gray-700">
-          <div className="p-6 space-y-4 md:space-y-6">
-            <h1 className="text-xl font-bold leading-tight tracking-tight text-white">
-              Sign in to your account
-            </h1>
+    <section className="auth-page">
+      <div className="auth-wrapper">
+        <div className="auth-card">
+          <h1 className="auth-title">Sign in to your account</h1>
 
-            <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block mb-2 text-sm font-medium text-white"
-                >
-                  Your email
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="auth-field">
+              <label htmlFor="email" className="auth-label">
+                Your email
+              </label>
+              <input
+                onChange={handleChange}
+                value={data.email}
+                type="email"
+                name="email"
+                id="email"
+                placeholder="name@company.com"
+                required
+                className="auth-input"
+              />
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="password" className="auth-label">
+                Password
+              </label>
+              <input
+                onChange={handleChange}
+                value={data.password}
+                type="password"
+                name="password"
+                id="password"
+                placeholder="••••••••"
+                required
+                className="auth-input"
+              />
+            </div>
+
+            <div className="auth-row">
+              <div className="auth-checkbox-row">
+                <input id="remember" type="checkbox" className="auth-checkbox" />
+                <label htmlFor="remember" className="auth-muted">
+                  Remember me
                 </label>
-                <input
-                  onChange={handleChange}
-                  value={data.email}
-                  type="email"
-                  name="email"
-                  id="email"
-                  placeholder="name@company.com"
-                  required
-                  className="border sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 text-white"
-                />
               </div>
 
-              {/* Password */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block mb-2 text-sm font-medium text-white"
-                >
-                  Password
-                </label>
-                <input
-                  onChange={handleChange}
-                  value={data.password}
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="••••••••"
-                  required
-                  className="border sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
+              <a href="#" className="auth-link">
+                Forgot password?
+              </a>
+            </div>
 
-              {/* Remember Me */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="remember"
-                      type="checkbox"
-                      className="w-4 h-4 border-gray-600 bg-gray-700 rounded focus:ring-indigo-600"
-                    />
-                  </div>
-                  <label
-                    htmlFor="remember"
-                    className="ml-2 text-sm text-gray-300"
-                  >
-                    Remember me
-                  </label>
-                </div>
+            <button type="submit" className="auth-button">
+              Sign in
+            </button>
 
-                <a
-                  href="#"
-                  className="text-sm font-medium text-indigo-400 hover:underline"
-                >
-                  Forgot password?
-                </a>
-              </div>
-
-              {/* Login Button */}
-              <button
-                type="submit"
-                className="w-full text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-              >
-                Sign in
-              </button>
-
-              {/* Register Link */}
-              <p className="text-sm font-light text-gray-400">
-                Don’t have an account yet?{" "}
-                <Link
-                  to={"/register"}
-                  className="font-medium text-indigo-400 hover:underline"
-                >
-                  Sign up
-                </Link>
-              </p>
-            </form>
-          </div>
+            <p className="auth-muted">
+              Don’t have an account yet?{" "}
+              <Link to="/register" className="auth-link">
+                Sign up
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
     </section>

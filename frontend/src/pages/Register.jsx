@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { Link } from "react-router-dom";
+import "../styles/auth.css";
 
 const Register = () => {
   const [data, setData] = useState({
@@ -32,109 +33,96 @@ const Register = () => {
   };
 
   return (
-    <section className="bg-gray-900 min-h-screen flex items-center justify-center">
-      <div className="flex flex-col items-center justify-center px-4 py-8 mx-auto lg:py-0 w-full">
-        <div className="w-full rounded-lg shadow border md:mt-0 sm:max-w-md xl:p-0 bg-gray-800 border-gray-700">
-          <div className="p-6 space-y-4 md:space-y-6">
-            <h1 className="text-xl font-bold leading-tight tracking-tight text-white">
+    <section className="auth-page">
+      <div className="auth-wrapper">
+        <div className="auth-card">
+          <h1 className="auth-title">Create an account</h1>
+
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="auth-field">
+              <label htmlFor="email" className="auth-label">Your email</label>
+              <input
+                onChange={handleChange}
+                value={data.email}
+                type="email"
+                name="email"
+                id="email"
+                placeholder="name@company.com"
+                required
+                className="auth-input"
+              />
+            </div>
+
+            <div className="auth-name-grid">
+              <div className="auth-field">
+                <label htmlFor="firstName" className="auth-label">First Name</label>
+                <input
+                  onChange={handleChange}
+                  value={data.firstName}
+                  type="text"
+                  name="firstName"
+                  id="firstName"
+                  placeholder="John"
+                  required
+                  className="auth-input"
+                />
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="lastName" className="auth-label">Last Name</label>
+                <input
+                  onChange={handleChange}
+                  value={data.lastName}
+                  type="text"
+                  name="lastName"
+                  id="lastName"
+                  placeholder="Doe"
+                  required
+                  className="auth-input"
+                />
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="password" className="auth-label">Password</label>
+              <input
+                onChange={handleChange}
+                value={data.password}
+                type="password"
+                name="password"
+                id="password"
+                placeholder="••••••••"
+                required
+                className="auth-input"
+              />
+            </div>
+
+            <div className="auth-checkbox-row">
+              <input
+                id="terms"
+                type="checkbox"
+                required
+                className="auth-checkbox"
+              />
+              <label htmlFor="terms" className="auth-muted">
+                I accept the {" "}
+                <a href="#" className="auth-link">
+                  Terms and Conditions
+                </a>
+              </label>
+            </div>
+
+            <button type="submit" className="auth-button">
               Create an account
-            </h1>
+            </button>
 
-            <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
-              {/* Email */}
-              <div>
-                <label className="block mb-2 text-sm font-medium text-white">Your email</label>
-                <input
-                  onChange={handleChange}
-                  value={data.email}
-                  type="email"
-                  name="email"
-                  id="email"
-                  placeholder="name@company.com"
-                  required
-                  className="border sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
-
-              {/* First & Last Name */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-white">First Name</label>
-                  <input
-                    onChange={handleChange}
-                    value={data.firstName}
-                    type="text"
-                    name="firstName"
-                    id="firstName"
-                    placeholder="John"
-                    required
-                    className="border sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-white">Last Name</label>
-                  <input
-                    onChange={handleChange}
-                    value={data.lastName}
-                    type="text"
-                    name="lastName"
-                    id="lastName"
-                    placeholder="Doe"
-                    required
-                    className="border sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block mb-2 text-sm font-medium text-white">Password</label>
-                <input
-                  onChange={handleChange}
-                  value={data.password}
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="••••••••"
-                  required
-                  className="border sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
-
-              {/* Terms & Conditions */}
-              <div className="flex items-start">
-                <input
-                  id="terms"
-                  type="checkbox"
-                  required
-                  className="w-4 h-4 border-gray-600 bg-gray-700 focus:ring-indigo-600"
-                />
-                <label className="ml-3 text-sm font-light text-gray-300">
-                  I accept the{" "}
-                  <a href="#" className="font-medium text-indigo-400 hover:underline">
-                    Terms and Conditions
-                  </a>
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-              >
-                Create an account
-              </button>
-
-              {/* Link to Login */}
-              <p className="text-sm font-light text-gray-400">
-                Already have an account?{" "}
-                <Link to={"/login"} className="font-medium text-indigo-400 hover:underline">
-                  Login here
-                </Link>
-              </p>
-            </form>
-          </div>
+            <p className="auth-muted">
+              Already have an account?{" "}
+              <Link to="/login" className="auth-link">
+                Login here
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
     </section>

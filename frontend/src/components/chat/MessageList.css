@@ -1,0 +1,33 @@
+.message-day-separator {
+  margin: 0.75rem 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  animation: message-slide-down 200ms ease-out;
+}
+
+.message-fade-in {
+  animation: message-slide-up 200ms ease-out;
+}
+
+@keyframes message-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes message-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

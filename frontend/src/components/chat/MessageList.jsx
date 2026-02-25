@@ -1,6 +1,6 @@
 import React from "react";
 import MessageItem from "./MessageItem";
-import { motion, AnimatePresence } from "framer-motion";
+import "./MessageList.css";
 
 function dayKey(ts) {
   const d = new Date(ts);
@@ -12,7 +12,6 @@ const MessageList = ({ messages = [], userDetails }) => {
     return <div className="px-2 py-4 text-center text-gray-400 mt-8">No messages yet — start the conversation</div>;
   }
 
-  // Render messages with date separators and simple grouping
   const items = [];
   let lastDay = null;
   messages.forEach((m, idx) => {
@@ -27,35 +26,22 @@ const MessageList = ({ messages = [], userDetails }) => {
 
   return (
     <div className="px-2 py-4 flex flex-col gap-3">
-      <AnimatePresence initial={false}>
-        {items.map((it) => {
-          if (it.type === "day") {
-            return (
-              <motion.div
-                key={it.key}
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                className="text-center text-xs text-gray-400 my-3"
-              >
-                {it.label}
-              </motion.div>
-            );
-          }
-
-          const m = it.message;
+      {items.map((it) => {
+        if (it.type === "day") {
           return (
-            <motion.div
-              key={it.key}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
-            >
-              <MessageItem message={m} isOwn={m.sender === userDetails?._id} />
-            </motion.div>
+            <div key={it.key} className="message-day-separator">
+              {it.label}
+            </div>
           );
-        })}
-      </AnimatePresence>
+        }
+
+        const m = it.message;
+        return (
+          <div key={it.key} className="message-fade-in">
+            <MessageItem message={m} isOwn={m.sender === userDetails?._id} />
+          </div>
+        );
+      })}
     </div>
   );
 };

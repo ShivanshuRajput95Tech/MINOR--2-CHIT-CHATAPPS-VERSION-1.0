@@ -2,17 +2,16 @@
 import React, { useEffect, useState } from "react";
 import { useProfile } from "../context/profileContext";
 import axios from "axios";
-import ChatMessages from "../components/Chat/ChatMessages";
-import MessageInputForm from "../components/Chat/MessageInputForm";
-import Nav from "../components/Chat/Nav";
-import OnlineUsersList from "../components/Chat/OnlineUsersList";
-import TopBar from "../components/Chat/TopBar";
-import { socketUrl } from "../config/apiConfig";
+import useWebSocket from "../hooks/useWebSocket";
 import { useAuth } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
 
+import ChatLayout from "../components/layout/ChatLayout";
+import Sidebar from "../components/chat/Sidebar";
+import ChatPane from "../components/chat/ChatPane";
+import { toast } from "react-hot-toast";
+
 const ChatHome = () => {
-  const [ws, setWs] = useState(null);
   const [onlinePeople, setOnlinePeople] = useState({});
   const [offlinePeople, setOfflinePeople] = useState({});
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -23,21 +22,6 @@ const ChatHome = () => {
   const { isAuthenticated, checkAuth } = useAuth();
   const navigate = useNavigate();
 
-  // WebSocket connection setup
-  const connectToWebSocket = () => {
-    const wsLocal = new WebSocket(socketUrl);
-    wsLocal.addEventListener("message", handleMessage);
-    setWs(wsLocal);
-  };
-
-  useEffect(() => {
-    connectToWebSocket();
-
-    ws?.addEventListener("close", () => {
-      connectToWebSocket();
-    });
-  }, [userDetails, selectedUserId]);
-
   // Fetch messages when user changes
   useEffect(() => {
     if (selectedUserId) {
@@ -46,6 +30,45 @@ const ChatHome = () => {
         .then((res) => setMessages(res.data))
         .catch((err) => console.error("Error fetching messages:", err));
     }
+  }, [selectedUserId]);
+
+  // When selecting a user, mark their messages as read on the server and update unread locally
+  useEffect(() => {
+    if (!selectedUserId) return;
+
+    axios
+      .post(`/api/user/messages/read/${selectedUserId}`)
+      .then((res) => {
+        // optimistic local update: set unread to 0 for selected user
+        setOnlinePeople((prev) => {
+          if (!prev[selectedUserId]) return prev;
+          return { ...prev, [selectedUserId]: { ...prev[selectedUserId], unread: 0 } };
+        });
+
+        setOfflinePeople((prev) => {
+          if (!prev[selectedUserId]) return prev;
+          return { ...prev, [selectedUserId]: { ...prev[selectedUserId], unread: 0 } };
+        });
+
+        // Re-fetch authoritative people list to avoid edge-cases and refresh lastMessage/unread
+        axios
+          .get("/api/user/people")
+          .then((res) => {
+            const online = {};
+            const offline = {};
+            (res.data || []).forEach((p) => {
+              if (p.online) online[p._id] = p;
+              else offline[p._id] = p;
+            });
+            setOnlinePeople(online);
+            setOfflinePeople(offline);
+          })
+          .catch((err) => console.error("Error refreshing people after mark-read:", err));
+      })
+      .catch((err) => {
+        // ignore error — we'll refresh people list when appropriate
+        console.error("Error marking messages read:", err);
+      });
   }, [selectedUserId]);
 
   // Fetch offline people
@@ -64,21 +87,106 @@ const ChatHome = () => {
     });
   }, [onlinePeople, userDetails]);
 
-  // Real-time messages listener
+  // WebSocket hook
+  const { status, lastMessage, sendMessage: wsSend, subscribe } = useWebSocket();
+
+  // Subscribe to incoming messages via hook
   useEffect(() => {
-    if (!ws) return;
+    const unsub = subscribe((data) => {
+      if (!data) return;
 
-    const handleRealTimeMessage = (event) => {
-      const messageData = JSON.parse(event.data);
-      if (messageData.text) {
-        setMessages((prev) => [...prev, messageData]);
+      // server sends online list, message objects (type: 'message') and read receipts (type: 'read')
+      if (data.online) {
+        showOnlinePeople(data.online);
+        return;
       }
-    };
 
-    ws.addEventListener("message", handleRealTimeMessage);
+      if (data.type === "message" || data.text) {
+        // ensure sender is an id
+        const senderId = data.sender;
 
-    return () => ws.removeEventListener("message", handleRealTimeMessage);
-  }, [ws, selectedUserId]);
+        // If message belongs to currently open conversation -> append
+        if (senderId === selectedUserId) {
+          setMessages((prev) => [...prev, data]);
+        } else {
+          // Not viewing this conversation: increment unread count and show a toast
+          const incrementUnreadFor = async (id) => {
+            // if sender not present in lists, refetch people and then increment
+            const presentInOnline = !!onlinePeople[id];
+            const presentInOffline = !!offlinePeople[id];
+
+            if (!presentInOnline && !presentInOffline) {
+              try {
+                const res = await axios.get("/api/user/people");
+                const online = {};
+                const offline = {};
+                (res.data || []).forEach((p) => {
+                  if (p.online) online[p._id] = p;
+                  else offline[p._id] = p;
+                });
+                setOnlinePeople(online);
+                setOfflinePeople(offline);
+              } catch (err) {
+                console.error("Error fetching people on unknown sender:", err);
+              }
+            } else {
+              setOnlinePeople((prev) => {
+                if (!prev[id]) return prev;
+                const currentUnread = prev[id].unread || 0;
+                return { ...prev, [id]: { ...prev[id], unread: currentUnread + 1 } };
+              });
+
+              setOfflinePeople((prev) => {
+                if (!prev[id]) return prev;
+                const currentUnread = prev[id].unread || 0;
+                return { ...prev, [id]: { ...prev[id], unread: currentUnread + 1 } };
+              });
+            }
+          };
+
+          incrementUnreadFor(senderId);
+
+          toast(({ id: tId }) => (
+            <div className="flex items-center gap-3">
+              <div className="font-medium">New message</div>
+              <div className="text-sm text-gray-300">{data.text}</div>
+            </div>
+          ));
+        }
+
+        return;
+      }
+
+      if (data.type === "read") {
+        // server informs that 'by' user has read messages in conversation with current user
+        const readerId = data.by;
+
+        // If current user is the sender (we received this), and the reader is the open conversation partner, mark own messages as read
+        if (selectedUserId && selectedUserId === readerId) {
+          setMessages((prev) => prev.map((m) => {
+            if (m.sender === userDetails._id && m.recipient === readerId) {
+              return { ...m, read: true };
+            }
+            return m;
+          }));
+        }
+
+        // Also, refresh people list to update unread badges
+        axios.get('/api/user/people').then((res) => {
+          const online = {};
+          const offline = {};
+          (res.data || []).forEach((p) => {
+            if (p.online) online[p._id] = p;
+            else offline[p._id] = p;
+          });
+          setOnlinePeople(online);
+          setOfflinePeople(offline);
+        }).catch(err => console.error('Error refreshing people after read receipt', err));
+      }
+    });
+
+    return () => unsub();
+  }, [subscribe, selectedUserId]);
 
   // Show online users
   const showOnlinePeople = (peopleArray) => {
@@ -91,28 +199,14 @@ const ChatHome = () => {
     setOnlinePeople(people);
   };
 
-  // Handle WS messages (online list OR chat message)
-  const handleMessage = (ev) => {
-    const messageData = JSON.parse(ev.data);
-
-    if (messageData.online) {
-      showOnlinePeople(messageData.online);
-    } else if (messageData.text && messageData.sender === selectedUserId) {
-      setMessages((prev) => [...prev, messageData]);
-    }
-  };
-
-  // Send message
+  // Send message (via ws hook)
   const sendMessage = (ev) => {
     ev?.preventDefault();
+    if (!selectedUserId || !newMessage?.trim()) return;
 
-    ws.send(
-      JSON.stringify({
-        text: newMessage,
-        recipient: selectedUserId,
-      })
-    );
+    wsSend({ text: newMessage, recipient: selectedUserId });
 
+    // optimistic update
     setMessages((prev) => [
       ...prev,
       {
@@ -120,6 +214,7 @@ const ChatHome = () => {
         sender: userDetails._id,
         recipient: selectedUserId,
         _id: Date.now(),
+        createdAt: Date.now(),
       },
     ]);
 
@@ -132,43 +227,30 @@ const ChatHome = () => {
     if (!isAuthenticated) navigate("/");
   }, []);
 
+  const selectedUser = onlinePeople[selectedUserId] || offlinePeople[selectedUserId] || null;
+
   return (
-    <div className="flex min-h-screen bg-background">
-      <Nav />
-
-      <OnlineUsersList
-        onlinePeople={onlinePeople}
-        selectedUserId={selectedUserId}
-        setSelectedUserId={setSelectedUserId}
-        offlinePeople={offlinePeople}
-      />
-
-      <section className="w-[71%] lg:w-[62%] relative pb-10">
-        {selectedUserId && (
-          <TopBar
-            selectedUserId={selectedUserId}
-            setSelectedUserId={setSelectedUserId}
-            offlinePeople={offlinePeople}
-            onlinePeople={onlinePeople}
-          />
-        )}
-
-        <ChatMessages
-          messages={messages}
-          userDetails={userDetails}
+    <ChatLayout
+      sidebar={
+        <Sidebar
+          onlinePeople={onlinePeople}
+          offlinePeople={offlinePeople}
+          onSelect={setSelectedUserId}
           selectedUserId={selectedUserId}
         />
-
-        <div className="absolute w-full bottom-0 flex justify-center">
-          <MessageInputForm
-            newMessage={newMessage}
-            setNewMessage={setNewMessage}
-            sendMessage={sendMessage}
-            selectedUserId={selectedUserId}
-          />
-        </div>
+      }
+    >
+      <section className="relative pb-6">
+        <ChatPane
+          selectedUser={selectedUser}
+          messages={messages}
+          userDetails={userDetails}
+          onSend={sendMessage}
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+        />
       </section>
-    </div>
+    </ChatLayout>
   );
 };
 

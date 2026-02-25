@@ -47,7 +47,6 @@ app.use("/api/avatar", avatarRoute);
 
 // Start server
 const PORT = process.env.PORT || 8000;
-
 const server = app.listen(PORT, () => {
   console.log(`🔥 Server running on port ${PORT}`);
 });
@@ -59,14 +58,10 @@ createWebSocketServer(server);
 // SERVE FRONTEND (VITE BUILD)
 // =========================
 const frontendPath = path.join(__dirname, "..", "frontend", "dist");
+
 app.use(express.static(frontendPath));
 
-// SPA fallback (Express v5 compatible)
-app.get("*", (req, res) => {
+// EXPRESS v5 FIX — USE REGEX
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
-});
-app.use(express.static(path.join(__dirname, "..", "frontend", "dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "frontend", "dist", "index.html"));
 });

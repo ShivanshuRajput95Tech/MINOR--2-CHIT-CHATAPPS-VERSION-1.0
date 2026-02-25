@@ -38,7 +38,27 @@ const Layout = () => {
   return (
     <>
       <ScrollRestoration />
-      <Outlet />
+
+      <div className="min-h-screen bg-background text-white">
+        <header className="border-b border-gray-700">
+          <div className="container-max flex items-center justify-between py-4">
+            <div className="flex items-center gap-3">
+              <img src="/vite.svg" alt="logo" className="h-8 w-8" />
+              <h1 className="text-xl font-semibold">Swift Chat</h1>
+            </div>
+
+            <nav className="hidden md:flex items-center gap-4 text-sm text-gray-300">
+              <a href="/" className="hover:text-white">Home</a>
+              <a href="/chathome" className="hover:text-white">Chat</a>
+              <a href="/profile" className="hover:text-white">Profile</a>
+            </nav>
+          </div>
+        </header>
+
+        <main className="container-max py-8">
+          <Outlet />
+        </main>
+      </div>
     </>
   );
 };

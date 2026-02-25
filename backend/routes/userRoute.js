@@ -26,8 +26,14 @@ router.get("/profile", profileController.profileController);
 // Get messages with a user
 router.get("/messages/:userId", messageController.getMessages);
 
+// Mark messages from a user as read
+router.post("/messages/read/:userId", messageController.markAsRead);
+
 // Get all people/users
 router.get("/people", peopleController.getPeople);
+
+// Get single person
+router.get("/people/:id", peopleController.getPersonById);
 
 // Update profile
 router.put("/profile/update", profileController.profileUpdate);

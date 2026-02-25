@@ -20,7 +20,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "node test.js"
+    "test": "jest --runInBand"
+  },
+  "devDependencies": {
+    "jest": "^29.6.1"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
